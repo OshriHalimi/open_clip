@@ -12,4 +12,4 @@
 
 #SBATCH --qos=basic
 
-srun --container-image=/home/oshri.halimi/nvidia+pytorch+22.01-py3.sqsh --container-save=/home/oshri.halimi/nvidia+pytorch+22.01-py3.sqsh ~/ibm/open_clip/scripts/train_clip.bash
+srun --container-image=/home/oshri.halimi/nvidia+pytorch+22.01-py3.sqsh --container-save=/home/oshri.halimi/nvidia+pytorch+22.01-py3.sqsh /root/ibm/open_clip/scripts/train_clip.bash

@@ -190,6 +190,8 @@ def main_worker(gpu, ngpus_per_node, log_queue, args):
         return
     elif start_epoch == 0 and args.val_data is not None:
         evaluate(model, data, 0, args, writer, 0)
+        if args.debug:
+            print("Finished evaluate()")
 
     for epoch in range(start_epoch, args.epochs):
         if args.gpu == 0:

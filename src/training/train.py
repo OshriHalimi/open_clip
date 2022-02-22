@@ -169,6 +169,8 @@ def evaluate(model, data, epoch, args, tb_writer=None, steps=None):
     all_image_features, all_text_features = [], []
     with torch.no_grad():
         for batch in dataloader:
+            if args.debug:
+                print("iterating 'val' dataloader")
             images, texts = batch
             if args.gpu is not None:
                 images = images.cuda(args.gpu, non_blocking=True)

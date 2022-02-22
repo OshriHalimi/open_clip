@@ -6,6 +6,10 @@
 
 #SBATCH --gpus=8
 
+#SBATCH -o train_clip.%N.%j.out # stdout goes here
+
+#SBATCH -e train_clip.%N.%j.out # stderr goes here
+
 #SBATCH --qos=normal srun  --container-image=./nvidia+pytorch+22.01-py3.sqsh --container-save=./nvidia+pytorch+22.01-py3.sqsh
 
 cd ~/ibm/open_clip

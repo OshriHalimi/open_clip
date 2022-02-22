@@ -14,4 +14,4 @@
 
 #SBATCH --qos=basic
 
-srun --container-image=/home/oshri.halimi/nvidia+pytorch+22.01-py3.sqsh --container-save=/home/oshri.halimi/nvidia+pytorch+22.01-py3.sqsh /root/ibm/open_clip/scripts/train_clip.bash
+srun --ntasks=8 --cpus-per-task=8 --gpus=8 --container-image=/home/oshri.halimi/nvidia+pytorch+22.01-py3.sqsh --container-save=/home/oshri.halimi/nvidia+pytorch+22.01-py3.sqsh /root/ibm/open_clip/scripts/train_clip.bash

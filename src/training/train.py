@@ -120,14 +120,14 @@ def train(model, data, epoch, optimizer, scaler, scheduler, args, tb_writer=None
         batch_time = time.time() - end
         end = time.time()
 
-        if is_master(args) and (i % 100) == 0:
+        if (i % 100) == 0: # if is_master(args) and (i % 100) == 0:
             num_samples = i * len(images) * args.world_size
             samples_per_epoch = dataloader.num_samples
             percent_complete = 100.0 * i / num_batches_per_epoch
             logging.info(
-                f"Train Epoch: {epoch} [{num_samples}/{samples_per_epoch} ({percent_complete:.0f}%)]\t"
-                f"Loss: {total_loss.item():.6f}\tData (t) {data_time:.3f}\tBatch (t) {batch_time:.3f}"
-                f"\tLR: {optimizer.param_groups[0]['lr']:5f}\tlogit_scale {m.logit_scale.data:.3f}"
+                f"RANK {args.rank} Train Epoch: {epoch} [{num_samples}/{samples_per_epoch} ({percent_complete:.0f}%)]\t"
+                f"RANK {args.rank} Loss: {total_loss.item():.6f}\tData (t) {data_time:.3f}\tBatch (t) {batch_time:.3f}"
+                f"RANK {args.rank} \tLR: {optimizer.param_groups[0]['lr']:5f}\tlogit_scale {m.logit_scale.data:.3f}"
             )
             # save train loss / etc.
 

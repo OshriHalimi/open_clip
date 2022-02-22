@@ -4,7 +4,7 @@ cd ~/ibm/open_clip
 
 export PYTHONPATH=./src
 
-export PATH=/home/oshri.halimi/anaconda3/bin:$PATH
+conda activate open_clip
 
 python src/training/main.py \
 --save-frequency \

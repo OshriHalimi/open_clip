@@ -130,7 +130,7 @@ def train(model, data, epoch, optimizer, scaler, scheduler, args, tb_writer=None
                 f"RANK {args.rank} \tLR: {optimizer.param_groups[0]['lr']:5f}\tlogit_scale {m.logit_scale.data:.3f}"
             )
             # save train loss / etc.
-
+        if is_master(args) and (i % 100) == 0:
             timestep = epoch * num_batches_per_epoch + i
             log_data = {
                 "loss": total_loss.item(),

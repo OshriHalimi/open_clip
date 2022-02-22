@@ -10,7 +10,9 @@
 
 #SBATCH -e train_clip.%N.%j.out # stderr goes here
 
-#SBATCH --qos=normal srun  --container-image=./nvidia+pytorch+22.01-py3.sqsh --container-save=./nvidia+pytorch+22.01-py3.sqsh
+#SBATCH --qos=basic
+#SBATCH --container-image=/home/oshri.halimi/nvidia+pytorch+22.01-py3.sqsh
+#SBATCH --container-save=/home/oshri.halimi/nvidia+pytorch+22.01-py3.sqsh
 
 cd ~/ibm/open_clip
 

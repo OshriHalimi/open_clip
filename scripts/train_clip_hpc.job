@@ -4,9 +4,9 @@
 
 #SBATCH --ntasks=8
 
-#SBATCH --gpus=16
+#SBATCH --gpus=8
 
-#SBATCH -c 128
+#SBATCH -c 64
 
 #SBATCH -o train_clip.%N.%j.out # stdout goes here
 

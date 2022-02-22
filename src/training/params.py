@@ -74,6 +74,9 @@ def parse_args():
         help="Optional identifier for the experiment when storing logs. Otherwise use current time.",
     )
     parser.add_argument(
+        "--ngpus_per_node", type=int, default=1, help="Number of gpu per node (should be defined manually)"
+    )
+    parser.add_argument(
         "--workers", type=int, default=1, help="Number of workers per GPU."
     )
     parser.add_argument(

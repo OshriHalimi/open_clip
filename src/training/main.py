@@ -277,7 +277,7 @@ def main():
     assert args.precision in ['amp', 'fp16', 'fp32']
     #assert args.model in ['RN50', 'RN101', 'RN50x4', 'ViT-B/32'] or os.path.exists(args.model)
 
-    args.ngpus_per_node = torch.cuda.device_count()
+    # args.ngpus_per_node = # torch.cuda.device_count() - not working on hpc setup
 
     args.wandb = 'wandb' in args.report_to or 'all' in args.report_to
     args.tensorboard = 'tensorboard' in args.report_to or 'all' in args.report_to
@@ -301,7 +301,7 @@ def main():
     # Also easily possible to extend to multiple nodes & multiple GPUs.
     args.distributed = (args.gpu is None) and torch.cuda.is_available() and (not args.dp)
     if args.distributed:
-        ngpus_per_node = torch.cuda.device_count()
+        ngpus_per_node = args.ngpus_per_node # torch.cuda.device_count() - not working on hpc setup
         args.world_size = ngpus_per_node
         mp.spawn(main_worker, nprocs=ngpus_per_node, args=(ngpus_per_node, log_queue, args))
     else:

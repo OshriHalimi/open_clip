@@ -1,0 +1,1 @@
+srun -p mig -G 1 --container-image=./nvidia+pytorch+22.01-py3.sqsh --container-save=./nvidia+pytorch+22.01-py3.sqsh --pty bash

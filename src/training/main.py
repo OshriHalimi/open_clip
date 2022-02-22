@@ -188,13 +188,13 @@ def main_worker(gpu, ngpus_per_node, log_queue, args):
         wandb.save(params_file)
         logging.debug('Finished loading wandb.')
 
-    if args.train_data is None:
-        evaluate(model, data, start_epoch, args, writer, 0)
-        return
-    elif start_epoch == 0 and args.val_data is not None:
-        evaluate(model, data, 0, args, writer, 0)
-        if args.debug:
-            print(f"RANK {args.rank} Finished evaluate()")
+    # if args.train_data is None:
+    #     evaluate(model, data, start_epoch, args, writer, 0)
+    #     return
+    # elif start_epoch == 0 and args.val_data is not None:
+    #     evaluate(model, data, 0, args, writer, 0)
+    #     if args.debug:
+    #         print(f"RANK {args.rank} Finished evaluate()")
 
     for epoch in range(start_epoch, args.epochs):
         logging.info(f'RANK {args.rank} Start epoch {epoch}')

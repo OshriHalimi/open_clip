@@ -1,4 +1,20 @@
-nohup python src/training/main.py \
+#!/bin/bash
+
+#SBATCH -p work
+
+#SBATCH --ntasks=8
+
+#SBATCH --gpus=8
+
+#SBATCH --qos=normal srun  --container-image=./nvidia+pytorch+22.01-py3.sqsh --container-save=./nvidia+pytorch+22.01-py3.sqsh
+
+cd ~/ibm/open_clip
+
+export PYTHONPATH=./src
+
+conda activate open_clip
+
+python src/training/main.py \
 --save-frequency \
 1 \
 --zeroshot-frequency \

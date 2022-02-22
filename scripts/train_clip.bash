@@ -27,5 +27,5 @@ title \
 --workers=8 \
 --model \
 RN50 \
---ngpus_per_node 8 \
+--ngpus_per_node 16 \
 --debug

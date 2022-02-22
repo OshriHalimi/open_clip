@@ -12,7 +12,7 @@
 
 #SBATCH --qos=basic
 
-srun --container-image=/home/oshri.halimi/nvidia+pytorch+22.01-py3.sqsh --container-save=/home/oshri.halimi/nvidia+pytorch+22.01-py3.sqsh
+srun --container-image=/home/oshri.halimi/nvidia+pytorch+22.01-py3.sqsh --container-save=/home/oshri.halimi/nvidia+pytorch+22.01-py3.sqsh --pty bash
 
 cd ~/ibm/open_clip
 

@@ -4,6 +4,8 @@
 
 #SBATCH --ntasks=8
 
+#SBTACH --cpus-per-task=8
+
 #SBATCH --gpus=8
 
 #SBATCH -o train_clip.%N.%j.out # stdout goes here

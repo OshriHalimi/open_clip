@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cat /proc/cpuinfo | grep 'core id'
+
 cd ~/ibm/open_clip
 
 export PYTHONPATH=./src

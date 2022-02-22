@@ -21,4 +21,5 @@ title \
 --workers=8 \
 --model \
 RN50 \
---ngpus_per_node 2 &
+--ngpus_per_node 4
+--debug --multigpu 0,1,2,3 &

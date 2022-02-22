@@ -107,6 +107,9 @@ def main_worker(gpu, ngpus_per_node, log_queue, args):
             convert_weights(model)
 
     data = get_data(args, (preprocess_train, preprocess_val))
+    if args.debug:
+        print(f"RANK {args.rank} data = ")
+        print(data)
 
     exclude = lambda n : "bn" in n or "ln" in n or "bias" in n or 'logit_scale' in n
     include = lambda n : not exclude(n)
@@ -191,7 +194,7 @@ def main_worker(gpu, ngpus_per_node, log_queue, args):
     elif start_epoch == 0 and args.val_data is not None:
         evaluate(model, data, 0, args, writer, 0)
         if args.debug:
-            print("Finished evaluate()")
+            print(f"RANK {args.rank} Finished evaluate()")
 
     for epoch in range(start_epoch, args.epochs):
         if args.gpu == 0:

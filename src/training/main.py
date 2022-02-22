@@ -197,8 +197,7 @@ def main_worker(gpu, ngpus_per_node, log_queue, args):
             print(f"RANK {args.rank} Finished evaluate()")
 
     for epoch in range(start_epoch, args.epochs):
-        if args.gpu == 0:
-            logging.info(f'Start epoch {epoch}')
+        logging.info(f'RANK {args.rank} Start epoch {epoch}')
         train(model, data, epoch, optimizer, scaler, scheduler, args, writer)
         steps = data["train"].dataloader.num_batches * (epoch + 1)
         if args.val_data is not None:

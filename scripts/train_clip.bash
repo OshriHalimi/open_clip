@@ -28,4 +28,4 @@ title \
 --model \
 RN50 \
 --ngpus_per_node 8 \
---debug --multigpu 0,1,2,3,4,5,6,7 \
+--debug

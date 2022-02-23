@@ -26,7 +26,7 @@ title \
 --lr=1e-3 \
 --wd=0.1 \
 --epochs=30 \
---workers=8 \
+--workers=15 \
 --model \
 RN50 \
 --ngpus_per_node 8 \

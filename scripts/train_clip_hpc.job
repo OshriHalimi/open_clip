@@ -2,9 +2,9 @@
 
 #SBATCH -p work
 
-#SBATCH --ntasks=8
+#SBATCH --ntasks=10
 
-#SBTACH --cpus-per-task=8
+#SBTACH --cpus-per-task=9
 
 #SBATCH --gpus=8
 
@@ -14,4 +14,4 @@
 
 #SBATCH --qos=basic
 
-srun --ntasks=8 --cpus-per-task=8 --gpus=8 --container-image=/home/oshri.halimi/nvidia+pytorch+22.01-py3.sqsh --container-save=/home/oshri.halimi/nvidia+pytorch+22.01-py3.sqsh /root/ibm/open_clip/scripts/train_clip.bash
+srun --ntasks=10 --cpus-per-task=9 --gpus=8 --container-image=/home/oshri.halimi/nvidia+pytorch+22.01-py3.sqsh --container-save=/home/oshri.halimi/nvidia+pytorch+22.01-py3.sqsh /root/ibm/open_clip/scripts/train_clip.bash

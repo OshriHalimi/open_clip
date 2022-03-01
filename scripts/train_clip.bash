@@ -27,4 +27,4 @@ title \
 --model ViT-B/16 \
 --ngpus_per_node 8 \
 --debug \
---name CLIP-ViT-B-16 \
+--name CLIP-ViT-B-16-chamfer-inner-product-similarity \

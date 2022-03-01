@@ -17,11 +17,35 @@ import wandb
 
 import logging
 
+def get_feature_inner_product(image_features, text_features, text_mask):
+    # return all_image_features @ all_text_features.t() # for global code
+    token_inner_product = torch.einsum('mik,njk->mnij', image_features, text_features) # (image ID, text ID, image_token ID, text token ID)
+
+    inner_product_mask = text_mask[None, :, None, :].expand(image_features.shape[0], text_mask.shape[0], image_features.shape[1], text_mask.shape[1])
+
+    # torch.inf is not supported in 1.7.1, we use -10 as the value for invalid text tokens
+    invalid_value = -10
+    inner_product = torch.where(inner_product_mask, token_inner_product, invalid_value * torch.ones_like(token_inner_product))
+
+    # calc chamfer inner product between text tokens and image tokens
+    text2image_inner_product = torch.max(inner_product, dim=2)[0]
+    image2text_inner_product = torch.max(inner_product, dim=3)[0]
+
+    image2text_similarity = torch.mean(image2text_inner_product, dim=-1)
+
+    # calc mean along valid words
+    weights = 1 * text_mask
+    weights = weights / weights.to(dtype=float).norm(dim=-1, keepdim=True)
+    text2image_similarity = torch.sum(text2image_inner_product * weights[None, :, :], dim=-1)
+
+    similarity = 0.5 * (text2image_similarity + image2text_similarity)
+    return similarity # # (image ID, text ID,)
+
 def is_master(args):
     return (not args.distributed) or args.gpu == 0
 
 def get_loss(model, images, texts, loss_img, loss_txt, args):
-    image_features, text_features, logit_scale = model(images, texts)
+    image_features, text_features, text_mask, logit_scale = model(images, texts)
     logit_scale = logit_scale.mean()
     if args.distributed and args.aggregate:
         world_size = dist.get_world_size()
@@ -34,8 +58,12 @@ def get_loss(model, images, texts, loss_img, loss_txt, args):
         gathered_text_features = [
             torch.zeros_like(text_features) for _ in range(world_size)
         ]
+        gathered_text_mask = [
+            torch.zeros_like(text_mask) for _ in range(world_size)
+        ]
         dist.all_gather(gathered_image_features, image_features)
         dist.all_gather(gathered_text_features, text_features)
+        dist.all_gather(gathered_text_mask, text_mask)
 
         all_image_features = torch.cat(
             [image_features]
@@ -47,14 +75,19 @@ def get_loss(model, images, texts, loss_img, loss_txt, args):
             + gathered_text_features[:rank]
             + gathered_text_features[rank + 1 :]
         )
+        all_text_mask = torch.cat(
+            [text_mask]
+            + gathered_text_mask[:rank]
+            + gathered_text_mask[rank + 1 :]
+        )
 
         # this is needed to send gradients back everywhere.
-        logits_per_image = logit_scale * all_image_features @ all_text_features.t()
+        logits_per_image = logit_scale * get_feature_inner_product(all_image_features, all_text_features, all_text_mask)
         logits_per_text = logits_per_image.t()
 
     else:
-        logits_per_image = logit_scale * image_features @ text_features.t()
-        logits_per_text = logit_scale * text_features @ image_features.t()
+        logits_per_image = logit_scale * get_feature_inner_product(image_features, text_features, text_mask)
+        logits_per_text = logit_scale * logits_per_image.t()
 
     ground_truth = torch.arange(len(logits_per_image)).long()
     if args.gpu is not None:

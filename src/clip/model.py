@@ -230,7 +230,8 @@ class VisualTransformer(nn.Module):
         x = self.transformer(x)
         x = x.permute(1, 0, 2)  # LND -> NLD
 
-        x = self.ln_post(x[:, 0, :])
+        # x = self.ln_post(x[:, 0, :])
+        x = self.ln_post(x[:, 1:, :]) # consider only patch encoding
 
         if self.proj is not None:
             x = x @ self.proj
@@ -350,9 +351,10 @@ class CLIP(nn.Module):
 
         # x.shape = [batch_size, n_ctx, transformer.width]
         # take features from the eot embedding (eot_token is the highest number in each sequence)
-        x = x[torch.arange(x.shape[0]), text.argmax(dim=-1)] @ self.text_projection
-
-        return x
+        # x = x[torch.arange(x.shape[0]), text.argmax(dim=-1)] @ self.text_projection
+        x = x @ self.text_projection
+        text_mask = torch.logical_not(torch.logical_or(torch.logical_or(text == 0, text == 49406), text == 49407)) # consider only word encoding
+        return x, text_mask
 
     def forward(self, image, text):
         if image is None:
@@ -360,12 +362,12 @@ class CLIP(nn.Module):
         elif text is None:
             return self.encode_image(image)
         image_features = self.encode_image(image)
-        text_features = self.encode_text(text)
+        text_features, text_mask = self.encode_text(text)
 
         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
         text_features = text_features / text_features.norm(dim=-1, keepdim=True)
         
-        return image_features, text_features, self.logit_scale.exp()
+        return image_features, text_features, text_mask, self.logit_scale.exp()
 
 
 def convert_weights(model: nn.Module):

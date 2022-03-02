@@ -8,6 +8,29 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
+def get_feature_inner_product(image_features, text_features, text_mask):
+    # return all_image_features @ all_text_features.t() # for global code
+    token_inner_product = torch.einsum('mik,njk->mnij', image_features, text_features) # (image ID, text ID, image_token ID, text token ID)
+
+    inner_product_mask = text_mask[None, :, None, :].expand(image_features.shape[0], text_mask.shape[0], image_features.shape[1], text_mask.shape[1])
+
+    # torch.inf is not supported in 1.7.1, we use -10 as the value for invalid text tokens
+    invalid_value = -10
+    inner_product = torch.where(inner_product_mask, token_inner_product, invalid_value * torch.ones_like(token_inner_product))
+
+    # calc chamfer inner product between text tokens and image tokens
+    text2image_inner_product = torch.max(inner_product, dim=2)[0]
+    image2text_inner_product = torch.max(inner_product, dim=3)[0]
+
+    image2text_similarity = torch.mean(image2text_inner_product, dim=-1)
+
+    # calc mean along valid words
+    weights = 1 * text_mask
+    weights = weights / weights.to(dtype=float).norm(dim=-1, keepdim=True)
+    text2image_similarity = torch.sum(text2image_inner_product * weights[None, :, :], dim=-1)
+
+    similarity = 0.5 * (text2image_similarity + image2text_similarity)
+    return similarity # # (image ID, text ID,)
 
 class Bottleneck(nn.Module):
     expansion = 4

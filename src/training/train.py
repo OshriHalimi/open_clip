@@ -16,30 +16,7 @@ import pdb
 import wandb
 
 import logging
-
-def get_feature_inner_product(image_features, text_features, text_mask):
-    # return all_image_features @ all_text_features.t() # for global code
-    token_inner_product = torch.einsum('mik,njk->mnij', image_features, text_features) # (image ID, text ID, image_token ID, text token ID)
-
-    inner_product_mask = text_mask[None, :, None, :].expand(image_features.shape[0], text_mask.shape[0], image_features.shape[1], text_mask.shape[1])
-
-    # torch.inf is not supported in 1.7.1, we use -10 as the value for invalid text tokens
-    invalid_value = -10
-    inner_product = torch.where(inner_product_mask, token_inner_product, invalid_value * torch.ones_like(token_inner_product))
-
-    # calc chamfer inner product between text tokens and image tokens
-    text2image_inner_product = torch.max(inner_product, dim=2)[0]
-    image2text_inner_product = torch.max(inner_product, dim=3)[0]
-
-    image2text_similarity = torch.mean(image2text_inner_product, dim=-1)
-
-    # calc mean along valid words
-    weights = 1 * text_mask
-    weights = weights / weights.to(dtype=float).norm(dim=-1, keepdim=True)
-    text2image_similarity = torch.sum(text2image_inner_product * weights[None, :, :], dim=-1)
-
-    similarity = 0.5 * (text2image_similarity + image2text_similarity)
-    return similarity # # (image ID, text ID,)
+from clip.model import  get_feature_inner_product
 
 def is_master(args):
     return (not args.distributed) or args.gpu == 0
@@ -199,7 +176,7 @@ def evaluate(model, data, epoch, args, tb_writer=None, steps=None):
 
     cumulative_loss = 0.0
     num_elements = 0.0
-    all_image_features, all_text_features = [], []
+    all_image_features, all_text_features, all_text_masks = [], [], []
     with torch.no_grad():
         for batch in dataloader:
             images, texts = batch
@@ -207,11 +184,12 @@ def evaluate(model, data, epoch, args, tb_writer=None, steps=None):
                 images = images.cuda(args.gpu, non_blocking=True)
                 texts = texts.cuda(args.gpu, non_blocking=True)
 
-            image_features, text_features, logit_scale = model(images, texts)
+            image_features, text_features, text_masks, logit_scale = model(images, texts)
             all_image_features.append(image_features)
             all_text_features.append(text_features)
+            all_text_masks.append(text_masks)
             logit_scale = logit_scale.mean()
-            logits_per_image = logit_scale * image_features @ text_features.t()
+            logits_per_image = logit_scale * get_feature_inner_product(image_features,text_features, text_masks)
             logits_per_text = logits_per_image.t()
 
             ground_truth = torch.arange(len(images)).long()
@@ -226,11 +204,13 @@ def evaluate(model, data, epoch, args, tb_writer=None, steps=None):
             cumulative_loss += total_loss * batch_size
             num_elements += batch_size
 
-        metrics = get_metrics(
-            image_features=torch.cat(all_image_features),
-            text_features=torch.cat(all_text_features),
-            logit_scale=logit_scale
-        )
+        # metrics = get_metrics(
+        #     image_features=torch.cat([x.detach().cpu() for x in all_image_features]),
+        #     text_features=torch.cat([x.detach().cpu() for x in all_text_features]),
+        #     text_masks=torch.cat([x.detach().cpu() for x in all_text_masks]),
+        #     logit_scale=logit_scale
+        # )
+        metrics = {}
         loss = cumulative_loss / num_elements
         metrics.update(
             **{"val_loss": loss.item(), "epoch": epoch, "num_elements": num_elements}
@@ -258,9 +238,9 @@ def evaluate(model, data, epoch, args, tb_writer=None, steps=None):
     return metrics
 
 
-def get_metrics(image_features, text_features, logit_scale):
+def get_metrics(image_features, text_features, text_masks, logit_scale):
     metrics = {}
-    logits_per_image = (logit_scale * image_features @ text_features.t()).detach().cpu()
+    logits_per_image = (logit_scale * get_feature_inner_product(image_features, text_features, text_masks)).detach().cpu()
     logits_per_text = logits_per_image.t().detach().cpu()
 
     logits = {"image_to_text": logits_per_image, "text_to_image": logits_per_text}

@@ -1,1 +1,6 @@
+enroot import docker://nvcr.io#nvidia/pytorch:22.01-py3
+
 srun -p mig -G 1 --container-image=./nvidia+pytorch+22.01-py3.sqsh --container-save=./nvidia+pytorch+22.01-py3.sqsh --pty bash
+
+cd ~/ibm/open_clip
+conda env create -f environment.yml

@@ -189,8 +189,8 @@ def main_worker(gpu, ngpus_per_node, log_queue, args):
         evaluate(model, data, start_epoch, args, writer, 0)
         return
     # TODO: this piece of code that evaluates the untrained model - causes run-time error on hpc
-    elif start_epoch == 0 and args.val_data is not None:
-        evaluate(model, data, 0, args, writer, 0)
+    # elif start_epoch == 0 and args.val_data is not None:
+    #     evaluate(model, data, 0, args, writer, 0)
 
     for epoch in range(start_epoch, args.epochs):
         logging.info(f'RANK {args.rank} Start epoch {epoch}')
